@@ -13,7 +13,7 @@ async function tryDeleteProduct(productId: string) {
 <template>
     <div class="container card">
         <h1>Liste des produits</h1>
-        <h3 v-if="error">Oops une erreur c'est produite</h3>
+        <h3 v-if="error">Oops une erreur s'est produite</h3>
         <h3 v-else-if="loading">Chargement ...</h3>
         <ul v-else>
             <li
