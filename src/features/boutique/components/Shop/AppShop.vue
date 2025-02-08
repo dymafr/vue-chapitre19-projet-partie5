@@ -3,15 +3,10 @@ import type { FiltersInterface, FilterUpdate, ProductInterface } from '@/interfa
 import AppShopProductList from './AppShopProductList.vue'
 import AppShopFilters from './AppShopFilters.vue'
 import AppCalc from '@/components/AppCalc.vue'
-import { reactive } from 'vue'
+import { ref } from 'vue'
 
-const state = reactive<{
-  open: boolean
-  isMobile: boolean
-}>({
-  open: !matchMedia('(max-width: 575px)').matches,
-  isMobile: matchMedia('(max-width: 575px)').matches,
-})
+const open = ref<boolean>(!matchMedia('(max-width: 575px)').matches)
+const isMobile = ref<boolean>(matchMedia('(max-width: 575px)').matches)
 
 defineProps<{
   products: ProductInterface[]
@@ -28,10 +23,10 @@ const emit = defineEmits<{
 
 <template>
   <div class="d-flex flex-row shop-container">
-    <AppCalc :open="state.isMobile && state.open" @close="state.open = false" :transparent="true" />
+    <AppCalc :open="isMobile && open" @close="open = false" :transparent="true" />
     <Transition>
       <AppShopFilters
-        v-if="state.open"
+        v-if="open"
         :filters="filters"
         :nbr-of-products="products.length"
         @update-filter="emit('updateFilter', $event)"
@@ -41,7 +36,7 @@ const emit = defineEmits<{
 
     <div class="d-flex flex-column">
       <button
-        @click="state.open = !state.open"
+        @click="open = !open"
         class="btn btn-primary d-flex flex-row justify-content-center align-items-center"
       >
         <i class="fa-solid fa-magnifying-glass mr-10"></i>

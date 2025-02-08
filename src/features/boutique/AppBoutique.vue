@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppShop from './components/Shop/AppShop.vue'
 import AppCart from './components/Cart/AppCart.vue'
-import { computed, provide, reactive, toRef, watch, watchEffect } from 'vue'
+import { computed, provide, ref, watch, watchEffect } from 'vue'
 import type {
   FiltersInterface,
   FilterUpdate,
@@ -12,60 +12,51 @@ import { DEFAULT_FILTERS } from './data/filters'
 import { fetchProduct } from '@/shared/services/product.service'
 import { pageKey } from '@/shared/injectionKeys/pageKey'
 
-const state = reactive<{
-  products: ProductInterface[]
-  cart: ProductCartInterface[]
-  filters: FiltersInterface
-  page: number
-  isLoading: boolean
-  moreResults: boolean
-}>({
-  products: [],
-  cart: [],
-  filters: { ...DEFAULT_FILTERS },
-  page: 1,
-  isLoading: true,
-  moreResults: true,
+const products = ref<ProductInterface[]>([])
+const cart = ref<ProductCartInterface[]>([])
+const filters = ref<FiltersInterface>({ ...DEFAULT_FILTERS })
+const page = ref<number>(1)
+const isLoading = ref<boolean>(true)
+const moreResults = ref<boolean>(true)
+
+watch([() => filters.value.priceRange, () => filters.value.category], () => {
+  page.value = 1
+  products.value = []
 })
 
-watch([() => state.filters.priceRange, () => state.filters.category], () => {
-  state.page = 1
-  state.products = []
-})
-
-provide(pageKey, toRef(state, 'page'))
+provide(pageKey, page)
 
 watchEffect(async () => {
-  state.isLoading = true
-  const products = await fetchProduct(state.filters, state.page)
-  if (Array.isArray(products)) {
-    state.products = [...state.products, ...products]
-    if (products.length < 20) {
-      state.moreResults = false
+  isLoading.value = true
+  const fetchedProducts = await fetchProduct(filters.value, page.value)
+  if (Array.isArray(fetchedProducts)) {
+    products.value = [...products.value, ...fetchedProducts]
+    if (fetchedProducts.length < 20) {
+      moreResults.value = false
     }
   } else {
-    state.products = [...state.products, products]
+    products.value = [...products.value, fetchedProducts]
   }
-  state.isLoading = false
+  isLoading.value = false
 })
 
 function addProductToCart(productId: string): void {
-  const product = state.products.find((product) => product._id === productId)
+  const product = products.value.find((product) => product._id === productId)
   if (product) {
-    const productInCart = state.cart.find((product) => product._id === productId)
+    const productInCart = cart.value.find((product) => product._id === productId)
     if (productInCart) {
       productInCart.quantity++
     } else {
-      state.cart.push({ ...product, quantity: 1 })
+      cart.value.push({ ...product, quantity: 1 })
     }
   }
 }
 
 function removeProductFromCart(productId: string): void {
-  const productFromCart = state.cart.find((product) => product._id === productId)
+  const productFromCart = cart.value.find((product) => product._id === productId)
   if (productFromCart) {
     if (productFromCart.quantity === 1) {
-      state.cart = state.cart.filter((product) => product._id !== productId)
+      cart.value = cart.value.filter((product) => product._id !== productId)
     } else {
       productFromCart.quantity--
     }
@@ -74,21 +65,21 @@ function removeProductFromCart(productId: string): void {
 
 function updateFilter(filterUpdate: FilterUpdate) {
   if (filterUpdate.search !== undefined) {
-    state.filters.search = filterUpdate.search
+    filters.value.search = filterUpdate.search
   } else if (filterUpdate.priceRange) {
-    state.filters.priceRange = filterUpdate.priceRange
+    filters.value.priceRange = filterUpdate.priceRange
   } else if (filterUpdate.category) {
-    state.filters.category = filterUpdate.category
+    filters.value.category = filterUpdate.category
   } else {
-    state.filters = { ...DEFAULT_FILTERS }
+    filters.value = { ...DEFAULT_FILTERS }
   }
 }
 
-const cartEmpty = computed(() => state.cart.length === 0)
+const cartEmpty = computed(() => cart.value.length === 0)
 
 const filteredProducts = computed(() => {
-  return state.products.filter((product) => {
-    if (product.title.toLocaleLowerCase().startsWith(state.filters.search.toLocaleLowerCase())) {
+  return products.value.filter((product) => {
+    if (product.title.toLocaleLowerCase().startsWith(filters.value.search.toLocaleLowerCase())) {
       return true
     } else {
       return false
@@ -102,16 +93,12 @@ const filteredProducts = computed(() => {
     <AppShop
       @update-filter="updateFilter"
       @add-product-to-cart="addProductToCart"
-      @inc-page="state.page++"
+      @inc-page="page++"
       :products="filteredProducts"
-      :filters="state.filters"
-      :more-results="state.moreResults"
+      :filters="filters"
+      :more-results="moreResults"
     />
-    <AppCart
-      v-if="!cartEmpty"
-      :cart="state.cart"
-      @remove-product-from-cart="removeProductFromCart"
-    />
+    <AppCart v-if="!cartEmpty" :cart="cart" @remove-product-from-cart="removeProductFromCart" />
   </div>
 </template>
 

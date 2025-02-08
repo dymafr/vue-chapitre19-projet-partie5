@@ -1,14 +1,10 @@
 <script setup lang="ts">
 import type { ProductCartInterface } from '@/interfaces'
-import { computed, reactive } from 'vue'
+import { computed, ref } from 'vue'
 import AppCartProductList from './AppCartProductList.vue'
 import AppCalc from '@/components/AppCalc.vue'
 
-const state = reactive<{
-  open: boolean
-}>({
-  open: false,
-})
+const open = ref<boolean>(false)
 
 const props = defineProps<{
   cart: ProductCartInterface[]
@@ -29,15 +25,15 @@ const emit = defineEmits<{
   <div class="cart-container">
     <Transition mode="out-in">
       <div
-        v-if="!state.open"
-        @click="state.open = !state.open"
+        v-if="!open"
+        @click="open = !open"
         class="cart-holder d-flex flex-row justify-content-center align-items-center"
       >
         <span class="tag">{{ cart.length }}</span>
         <i class="fa-solid fa-basket-shopping"></i>
       </div>
       <div v-else>
-        <AppCalc :open="true" @close="state.open = false" />
+        <AppCalc :open="true" @close="open = false" />
         <div class="p-20 d-flex flex-column card ml-20">
           <h2 class="mb-10">Panier</h2>
           <AppCartProductList
