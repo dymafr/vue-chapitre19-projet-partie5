@@ -1,87 +1,85 @@
 <script setup lang="ts">
-import { useForm, useField } from "vee-validate";
-import { z } from "zod";
-import { toFormValidator } from "@vee-validate/zod";
-import { onMounted, ref } from "vue";
-import {
-  addProduct,
-  editProduct,
-  getProduct,
-} from "@/shared/services/product.service";
-import type { ProductInterface } from "@/interfaces/Product.interface";
-import { useRoute, useRouter } from "vue-router";
-import type { Category } from "@/interfaces";
+import { useForm, useField } from 'vee-validate'
+import { z } from 'zod'
+import { toTypedSchema } from '@vee-validate/zod'
+import { onMounted, ref } from 'vue'
+import { addProduct, editProduct, getProduct } from '@/shared/services/product.service'
+import type { ProductInterface } from '@/interfaces/Product.interface'
+import { useRoute, useRouter } from 'vue-router'
+import type { Category } from '@/interfaces'
 
-const firstInput = ref<HTMLInputElement | null>(null);
-const product = ref<ProductInterface | null>(null);
+const firstInput = ref<HTMLInputElement | null>(null)
+const product = ref<ProductInterface | null>(null)
 
-const route = useRoute();
-const router = useRouter();
+const route = useRoute()
+const router = useRouter()
 if (route.params.productId) {
-  product.value = await getProduct(route.params.productId as string);
+  product.value = await getProduct(route.params.productId as string)
 }
 
 const initialValues = {
-  title: product.value ? product.value.title : "",
-  image: product.value ? product.value.image : "",
+  title: product.value ? product.value.title : '',
+  image: product.value ? product.value.image : '',
   price: product.value ? product.value.price : 0,
-  description: product.value ? product.value.description : "",
-  category: product.value ? product.value.category : "desktop",
-};
+  description: product.value ? product.value.description : '',
+  category: product.value ? product.value.category : 'desktop',
+}
 
 onMounted(() => {
-  firstInput.value?.focus();
-});
+  firstInput.value?.focus()
+})
 
-const required = { required_error: "Veuillez renseigner ce champ" };
+const required = { required_error: 'Veuillez renseigner ce champ' }
 
-const validationSchema = toFormValidator(
+const validationSchema = toTypedSchema(
   z.object({
     title: z
       .string(required)
-      .min(1, { message: "Le titre doit faire au moins 1 caractère" })
-      .max(20, { message: "Le titre doit faire moins de 10 caractères" }),
+      .min(1, { message: 'Le titre doit faire au moins 1 caractère' })
+      .max(20, { message: 'Le titre doit faire moins de 10 caractères' }),
     image: z.string(required),
     price: z
       .number(required)
-      .min(0, { message: "Le prix doit être superieur à 0" })
-      .max(15000, { message: "Le prix doit être inferieur à 15 000" }),
+      .min(0, { message: 'Le prix doit être superieur à 0' })
+      .max(15000, { message: 'Le prix doit être inferieur à 15 000' }),
     description: z
       .string(required)
-      .min(10, { message: "La description doit faire au moins 10 caractères" }),
-    category: z.string(required),
-  })
-);
+      .min(10, { message: 'La description doit faire au moins 10 caractères' }),
+    category: z.enum(['gamer', 'desktop', 'streaming', 'all'], {
+      message: 'La catégorie doit être une des valeurs suivantes: gamer, desktop, streaming',
+    }),
+  }),
+)
 
 const { handleSubmit, isSubmitting } = useForm({
   validationSchema,
   initialValues,
-});
+})
 
-const title = useField<string>("title");
-const image = useField<string>("image");
-const price = useField<number>("price");
-const description = useField<string>("description");
-const category = useField<Category>("category");
+const title = useField<string>('title')
+const image = useField<string>('image')
+const price = useField<number>('price')
+const description = useField<string>('description')
+const category = useField<Category>('category')
 
-const trySubmit = handleSubmit(async (formValues, { resetForm }) => {
+const trySubmit = handleSubmit(async (formValues) => {
   try {
     if (!product.value) {
-      await addProduct(formValues);
+      await addProduct(formValues)
     } else {
-      await editProduct(product.value._id, formValues);
+      await editProduct(product.value._id, formValues)
     }
-    router.push("/admin/productlist");
+    router.push('/admin/productlist')
   } catch (e) {
-    console.log(e);
+    console.log(e)
   }
-});
+})
 </script>
 
 <template>
   <div class="card">
     <h3 class="mb-10">
-      {{ product ? "Editer un produit" : "Créer un produit" }}
+      {{ product ? 'Editer un produit' : 'Créer un produit' }}
     </h3>
     <form @submit="trySubmit">
       <div class="d-flex flex-column mb-20">
@@ -124,9 +122,7 @@ const trySubmit = handleSubmit(async (formValues, { resetForm }) => {
           category.errorMessage.value
         }}</small>
       </div>
-      <button class="btn btn-primary" :disabled="isSubmitting">
-        Sauvegarder
-      </button>
+      <button class="btn btn-primary" :disabled="isSubmitting">Sauvegarder</button>
     </form>
   </div>
 </template>

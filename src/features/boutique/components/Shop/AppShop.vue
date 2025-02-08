@@ -1,44 +1,36 @@
 <script setup lang="ts">
-import type {
-  FiltersInterface,
-  FilterUpdate,
-  ProductInterface,
-} from "@/interfaces";
-import ShopProductList from "./ShopProductList.vue";
-import ShopFilters from "./ShopFilters.vue";
-import Calc from "@/components/Calc.vue";
-import { reactive } from "vue";
+import type { FiltersInterface, FilterUpdate, ProductInterface } from '@/interfaces'
+import AppShopProductList from './AppShopProductList.vue'
+import AppShopFilters from './AppShopFilters.vue'
+import AppCalc from '@/components/AppCalc.vue'
+import { reactive } from 'vue'
 
 const state = reactive<{
-  open: boolean;
-  isMobile: boolean;
+  open: boolean
+  isMobile: boolean
 }>({
-  open: !matchMedia("(max-width: 575px)").matches,
-  isMobile: matchMedia("(max-width: 575px)").matches,
-});
+  open: !matchMedia('(max-width: 575px)').matches,
+  isMobile: matchMedia('(max-width: 575px)').matches,
+})
 
 defineProps<{
-  products: ProductInterface[];
-  filters: FiltersInterface;
-  moreResults: boolean;
-}>();
+  products: ProductInterface[]
+  filters: FiltersInterface
+  moreResults: boolean
+}>()
 
 const emit = defineEmits<{
-  (e: "addProductToCart", productId: string): void;
-  (e: "updateFilter", updateFilter: FilterUpdate): void;
-  (e: "incPage"): void;
-}>();
+  (e: 'addProductToCart', productId: string): void
+  (e: 'updateFilter', updateFilter: FilterUpdate): void
+  (e: 'incPage'): void
+}>()
 </script>
 
 <template>
   <div class="d-flex flex-row shop-container">
-    <Calc
-      :open="state.isMobile && state.open"
-      @close="state.open = false"
-      :transparent="true"
-    />
+    <AppCalc :open="state.isMobile && state.open" @close="state.open = false" :transparent="true" />
     <Transition>
-      <ShopFilters
+      <AppShopFilters
         v-if="state.open"
         :filters="filters"
         :nbr-of-products="products.length"
@@ -55,7 +47,7 @@ const emit = defineEmits<{
         <i class="fa-solid fa-magnifying-glass mr-10"></i>
         <span>Rechercher</span>
       </button>
-      <ShopProductList
+      <AppShopProductList
         class="flex-fill scrollable"
         @add-product-to-cart="emit('addProductToCart', $event)"
         @inc-page="emit('incPage')"
@@ -67,7 +59,7 @@ const emit = defineEmits<{
 </template>
 
 <style lang="scss" scoped>
-@use "@/assets/scss/mixins";
+@use '@/assets/scss/mixins';
 .scrollable {
   overflow-y: auto;
   height: calc(100vh - 96px);

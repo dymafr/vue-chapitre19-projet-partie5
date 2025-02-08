@@ -1,28 +1,28 @@
 <script setup lang="ts">
-import type { ProductCartInterface } from "@/interfaces";
-import { computed, reactive } from "vue";
-import CartProductList from "./CartProductList.vue";
-import Calc from "@/components/Calc.vue";
+import type { ProductCartInterface } from '@/interfaces'
+import { computed, reactive } from 'vue'
+import AppCartProductList from './AppCartProductList.vue'
+import AppCalc from '@/components/AppCalc.vue'
 
 const state = reactive<{
-  open: boolean;
+  open: boolean
 }>({
   open: false,
-});
+})
 
 const props = defineProps<{
-  cart: ProductCartInterface[];
-}>();
+  cart: ProductCartInterface[]
+}>()
 
 const totalPrice = computed(() =>
   props.cart.reduce((acc, product) => {
-    return acc + product.price * product.quantity;
-  }, 0)
-);
+    return acc + product.price * product.quantity
+  }, 0),
+)
 
 const emit = defineEmits<{
-  (e: "removeProductFromCart", productId: string): void;
-}>();
+  (e: 'removeProductFromCart', productId: string): void
+}>()
 </script>
 
 <template>
@@ -37,10 +37,10 @@ const emit = defineEmits<{
         <i class="fa-solid fa-basket-shopping"></i>
       </div>
       <div v-else>
-        <Calc :open="true" @close="state.open = false" />
+        <AppCalc :open="true" @close="state.open = false" />
         <div class="p-20 d-flex flex-column card ml-20">
           <h2 class="mb-10">Panier</h2>
-          <CartProductList
+          <AppCartProductList
             class="flex-fill"
             :cart="cart"
             @remove-product-from-cart="emit('removeProductFromCart', $event)"
